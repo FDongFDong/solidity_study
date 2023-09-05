@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import {
   InsecureEtherVault,
   InsecureEtherVault__factory,
+  FailingReceiver,
 } from '../typechain-types';
 import { Contract, Signer } from 'ethers';
 import { expect } from 'chai';
@@ -11,9 +12,8 @@ import { expect } from 'chai';
 describe('InsecureEtherVault', () => {
   const deployInsecureEtherVault = async () => {
     const Signer = await ethers.getSigners();
-    const InsecureEtherVaultContract = await ethers.getContractFactory(
-      'InsecureEtherVault'
-    );
+    const InsecureEtherVaultContract =
+      await ethers.getContractFactory('InsecureEtherVault');
     const InsecureEtherVault = await InsecureEtherVaultContract.deploy();
     return { InsecureEtherVault, Signer };
   };
@@ -21,7 +21,7 @@ describe('InsecureEtherVault', () => {
   let signer: Signer[];
   before(async () => {
     const { InsecureEtherVault, Signer } = await loadFixture(
-      deployInsecureEtherVault
+      deployInsecureEtherVault,
     );
     insecureEtherVault = InsecureEtherVault;
     signer = Signer;
@@ -31,7 +31,7 @@ describe('InsecureEtherVault', () => {
     const depositAmount = ethers.parseEther('1.0');
     it('사용자의 이더를 입금받을 수 있어야 한다.', async () => {
       const { InsecureEtherVault, Signer } = await loadFixture(
-        deployInsecureEtherVault
+        deployInsecureEtherVault,
       );
       insecureEtherVault = InsecureEtherVault;
       signer = Signer;
@@ -52,7 +52,7 @@ describe('InsecureEtherVault', () => {
     const depositAmount = ethers.parseEther('1.0');
     it('사용자가 자신이 입금한 이더를 모두 출금 할 수 있다.', async () => {
       const { InsecureEtherVault, Signer } = await loadFixture(
-        deployInsecureEtherVault
+        deployInsecureEtherVault,
       );
       insecureEtherVault = InsecureEtherVault;
       signer = Signer;
@@ -77,12 +77,12 @@ describe('InsecureEtherVault', () => {
 
       await insecureEtherVault.connect(signer[1]).withdrawAll();
       expect(await insecureEtherVault.getBalance()).to.equal(
-        ethers.parseEther('0')
+        ethers.parseEther('0'),
       );
     });
     it('사용자가 모든 이더를 출금하면 총 잔액이 0이 된다.', async () => {
       const { InsecureEtherVault, Signer } = await loadFixture(
-        deployInsecureEtherVault
+        deployInsecureEtherVault,
       );
       insecureEtherVault = InsecureEtherVault;
       signer = Signer;
@@ -96,43 +96,44 @@ describe('InsecureEtherVault', () => {
       // 1이더 출금
       await insecureEtherVault.connect(signer[1]).withdrawAll();
       expect(await insecureEtherVault.getBalance()).to.equal(
-        ethers.parseEther('0')
+        ethers.parseEther('0'),
       );
     });
 
     it('컨트랙트에 입금되어 있는 잔고가 없으면 실패한다.', async () => {
       const { InsecureEtherVault, Signer } = await loadFixture(
-        deployInsecureEtherVault
+        deployInsecureEtherVault,
       );
       insecureEtherVault = InsecureEtherVault;
       signer = Signer;
 
       await expect(
-        insecureEtherVault.connect(signer[1]).withdrawAll()
+        insecureEtherVault.connect(signer[1]).withdrawAll(),
       ).to.be.revertedWith('Insufficient balance');
     });
 
     it('호출한 주소에서 이더를 수신하는데 실패하면 revert된다.', async () => {
-      const FailingReceiver = await ethers.getContractFactory(
-        'FailingReceiver'
-      );
+      const FailingReceiver =
+        await ethers.getContractFactory('FailingReceiver');
       const { InsecureEtherVault, Signer } = await loadFixture(
-        deployInsecureEtherVault
+        deployInsecureEtherVault,
       );
       insecureEtherVault = InsecureEtherVault;
       signer = Signer;
 
       const insecureEtherVaultAddress = await insecureEtherVault.getAddress();
 
-      let failingReceiver = await FailingReceiver.deploy(
-        insecureEtherVaultAddress
+      let failingReceiver: FailingReceiver = await FailingReceiver.deploy(
+        'insecure',
+        insecureEtherVaultAddress,
       );
-
+      await failingReceiver.setShouldFailOnReceive(true);
+      await expect(FailingReceiver.deploy('Fail', insecureEtherVaultAddress)).to.be.revertedWith('Invalid contract Type')
       await expect(
         failingReceiver.connect(signer[1]).depositAndWithdraw({
           value: ethers.parseEther('0.5'),
-        })
-      ).to.be.rejectedWith('Failed to send Ether');
+        }),
+      ).to.be.revertedWith('Failed to send Ether');
     });
   });
 });
