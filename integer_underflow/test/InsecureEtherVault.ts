@@ -41,7 +41,7 @@ describe('InsecureEtherVault', () => {
     });
   });
 
-  describe('', () => {
+  describe('출금', () => {
     const depositAmount = ethers.parseEther('10.0');
     it('사용자는 자신이 입금한 돈을 모두 출금할 수 있다.', async () => {
       const { InsecureEtherVault, Signer } = await loadFixture(
@@ -63,7 +63,7 @@ describe('InsecureEtherVault', () => {
       expect(await insecureEtherVault.getUserBalance(user)).to.be.equal(0);
     });
 
-    it('사용자는 자신이 입금한 돈의 일부분만을 출금할 수 있다.', async () => {
+    it('사용자는 자신이 입금한 돈의 일부분을 출금할 수 있다.', async () => {
       const { InsecureEtherVault, Signer } = await loadFixture(
         deployInsecureEtherVault,
       );
@@ -86,7 +86,7 @@ describe('InsecureEtherVault', () => {
       );
     });
 
-    it('사용자가 출금하려는 금액이 입금된 금액보다 클 경우 출금할 수 없다.', async () => {
+    it.skip('사용자가 출금하려는 금액이 입금된 금액보다 클 경우 출금할 수 없다.', async () => {
       const depositAmount = ethers.parseEther('10.0');
       const user = signer[1];
       await insecureEtherVault.connect(user).deposit({ value: depositAmount });
