@@ -3,13 +3,16 @@ import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
 import { Contract, Signer, Wallet } from 'ethers';
-import { Attack, InsecureEtherVault,FailingReceiver } from '../typechain-types';
+import {
+  Attack,
+  InsecureEtherVault,
+  FailingReceiver,
+} from '../typechain-types';
 
 describe('Attack', () => {
   const deployAttack = async () => {
     const Signer = await ethers.getSigners();
     const AttackContract = await ethers.getContractFactory('Attack');
-    
 
     const InsecureEtherVaultContract =
       await ethers.getContractFactory('InsecureEtherVault');
@@ -57,21 +60,21 @@ describe('Attack', () => {
     });
   });
 
-  describe('보안이 향상된 컨트랙트 공격',()=>{
-    
-    it("공격자가 공격 시 FixedEtherVault 컨트랙트의 mutex에 막힌다. ",async()=>{
-        const FixedEtherVaultContract = await ethers.getContractFactory("FixedEtherVault");
-        const FixedEtherVault = await FixedEtherVaultContract.deploy();
-        const AttackContract = await ethers.getContractFactory('Attack');
-        const Attack = await AttackContract.deploy(FixedEtherVault);
-        const victim = signer[1];
-        const attacker = signer[0];
+  describe('보안이 향상된 컨트랙트 공격', () => {
+    it('공격자가 공격 시 FixedEtherVault 컨트랙트의 mutex에 막힌다. ', async () => {
+      const FixedEtherVaultContract =
+        await ethers.getContractFactory('FixedEtherVault');
+      const FixedEtherVault = await FixedEtherVaultContract.deploy();
+      const AttackContract = await ethers.getContractFactory('Attack');
+      const Attack = await AttackContract.deploy(FixedEtherVault);
+      const victim = signer[1];
+      const attacker = signer[0];
 
       let victimAmount: bigint = await ethers.provider.getBalance(victim);
       // 피해자가 100이더를 입금한다.
-      await FixedEtherVault
-        .connect(victim)
-        .deposit({ value: ethers.parseEther('100.0') });
+      await FixedEtherVault.connect(victim).deposit({
+        value: ethers.parseEther('100.0'),
+      });
 
       victimAmount = await ethers.provider.getBalance(victim);
       let fixedEtherVaultAmount: bigint =
@@ -100,8 +103,7 @@ describe('Attack', () => {
 
       attackerAmount = await ethers.provider.getBalance(attacker);
       console.log(`[공격자의 잔고 : ${ethers.formatEther(attackerAmount)}]`);
-      fixedEtherVaultAmount =
-        await ethers.provider.getBalance(FixedEtherVault);
+      fixedEtherVaultAmount = await ethers.provider.getBalance(FixedEtherVault);
       console.log(
         `FixedEtherVault 컨트랙트에 입금되어 있는 금액 : ${ethers.formatEther(
           fixedEtherVaultAmount,
@@ -126,18 +128,23 @@ describe('Attack', () => {
         fixedEtherVaultAddress,
       );
       // await failingReceiver.setShouldFailOnReceive(false);
-      await expect(Attack.connect(signer[1]).attack({value: ethers.parseEther("1.0")})).to.be.revertedWith('Failed to send Ether')
+      await expect(
+        Attack.connect(signer[1]).attack({ value: ethers.parseEther('1.0') }),
+      ).to.be.revertedWith('Failed to send Ether');
       await failingReceiver.setShouldFailOnReceive(false);
-      expect(await failingReceiver.shouldFailOnReceive()).to.false
+      expect(await failingReceiver.shouldFailOnReceive()).to.false;
 
-  
-
-      await expect(signer[1].sendTransaction({to: await failingReceiver.getAddress(), value : ethers.parseEther('0.1')})).to.be.revertedWith('Insufficient balance')
-    })
-  })
+      await expect(
+        signer[1].sendTransaction({
+          to: await failingReceiver.getAddress(),
+          value: ethers.parseEther('0.1'),
+        }),
+      ).to.be.revertedWith('Insufficient balance');
+    });
+  });
 
   describe('공격', () => {
-    it('공격자가 1이더를 공급하지 못하면 revert된다..', async () => {
+    it('공격자가 1이더를 공급하지 못하면 revert된다.', async () => {
       const { Attack } = await loadFixture(deployAttack);
 
       attack = Attack;
