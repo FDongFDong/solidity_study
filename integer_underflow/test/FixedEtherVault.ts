@@ -108,8 +108,6 @@ describe('FixedEtherVault', () => {
       fixedEtherVault = FixedEtherVault;
       signer = Signer;
 
-      // await fixedEtherVault.deposit({ value: ethers.MaxUint256 });
-
       const MockFactory = await ethers.getContractFactory('MockSafeMath');
       const MockContract = await MockFactory.deploy();
 

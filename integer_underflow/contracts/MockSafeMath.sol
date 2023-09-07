@@ -9,7 +9,4 @@ contract MockSafeMath {
     function mockAdd(uint256 a, uint256 b) public pure returns (uint256) {
         return a.add(b);
     }
-
-    
-    // 여기에 다른 함수들을 추가할 수 있습니다.
 }
