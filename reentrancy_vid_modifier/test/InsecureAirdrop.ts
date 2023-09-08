@@ -66,7 +66,6 @@ describe('InsecureAirdrop', () => {
     });
   });
   describe('Mock', () => {
-    console.log('mock');
     // Deploy Mock Contract
     let mockAirdropReceiverFalse: MockAirdropReceiverFalse & {
       deploymentTransaction(): ContractTransactionResponse;
@@ -97,11 +96,11 @@ describe('InsecureAirdrop', () => {
 
     it('Contract Address가 에어드랍을 받을 수 있는 컨트랙트 일 경우 에어드랍을 받는다.', async () => {
       await mockAirdropReceiverTrue.triggerReceiveAirdrop(
-        insecureAirdrop.getAddress()
+        await insecureAirdrop.getAddress()
       );
       expect(
         await insecureAirdrop.hasReceivedAirdrop(
-          mockAirdropReceiverTrue.getAddress()
+          await mockAirdropReceiverTrue.getAddress()
         )
       ).to.be.true;
       expect(
