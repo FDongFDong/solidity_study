@@ -46,6 +46,12 @@ yarn hardhat run scripts/deploy.js --network dev
 yarn hardhat test
 ```
 
+## Measuring test code coverage
+
+```bash
+yarn hardhat coverage
+```
+
 ## Contact
 
 - Email: abnormal5626@gmail.com
