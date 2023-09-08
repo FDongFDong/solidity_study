@@ -27,7 +27,7 @@ cd projectname
 yarn install
 ```
 
-## Usage
+## Compile
 
 ```bash
 # Compile the smart contracts
