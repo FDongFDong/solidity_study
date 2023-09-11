@@ -31,7 +31,6 @@ contract Attack {
     function setAttackPeer(Attack _attackPeer) external {
         attackPeer = _attackPeer;
     }
-
     receive() external payable {
         if (address(etherVault).balance >= 1 ether) {
             etherVault.transfer(

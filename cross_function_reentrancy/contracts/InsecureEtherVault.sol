@@ -13,7 +13,6 @@ pragma solidity 0.8.13;
 import "./Dependencies.sol";
 
 contract InsecureEtherVault is ReentrancyGuard {
-
     mapping (address => uint256) private userBalances;
 
     function deposit() external payable {
