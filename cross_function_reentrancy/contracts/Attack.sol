@@ -18,6 +18,10 @@ interface IEtherVault {
 } 
 
 contract Attack {
+
+        event Received(uint256 amount, uint256 balance);
+
+
     IEtherVault public immutable etherVault;
     Attack public attackPeer;
 
