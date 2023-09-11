@@ -13,6 +13,7 @@ pragma solidity 0.8.13;
 import "./Dependencies.sol";
 
 contract InsecureEtherVault is ReentrancyGuard {
+
     mapping (address => uint256) private userBalances;
 
     function deposit() external payable {
@@ -31,6 +32,7 @@ contract InsecureEtherVault is ReentrancyGuard {
         require(balance > 0, "Insufficient balance");
 
         (bool success, ) = msg.sender.call{value: balance}("");
+
         require(success, "Failed to send Ether");
 
         userBalances[msg.sender] = 0;
