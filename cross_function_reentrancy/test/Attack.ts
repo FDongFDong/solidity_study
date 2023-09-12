@@ -104,48 +104,24 @@ describe('Attack1', () => {
       ).to.be.revertedWith('Require 1 Ether to attack');
     });
 
-    it('공격자는 1 ETH를 통해 공격할 수 있다. (value == 1)', async () => {
-      ///////////////////
-      console.log('Attack 컨트랙트');
-      console.log(
-        'InsecureEtherVault           => ',
-        await insecureEtherVault.getAddress(),
-      );
-      console.log('Attack에 등록된 주소      => ', await attack1.etherVault());
-      console.log('------------');
-      console.log('Attack[2]             => ', await attack2.getAddress());
-      console.log('Attack에 등록된 주소   => ', await attack1.attackPeer());
+    it('공격자는 공격을 시작하여 InsecureEtherVault Contract의 ETH를 모두 소진시킬 수 있다. (value == 1)', async () => {
+      let balance: bigint = await insecureEtherVault.getBalance();
+      // insecureEtherVault의 초기 값 저장
+      const initBalance = balance;
 
-      console.log('---------------------');
+      while (balance != 0n) {
+        // 1 ETH 공급
+        await attack1.attackInit({ value: ethers.parseEther('1.0') });
 
-      for (let i = 0; i < 7; i++) {
-        // it((await insecureEtherVault.getBalance() === ethers.parseEther('0')){
-        //   break;
-        // }
-        let tx = await attack1.attackInit({ value: ethers.parseEther('1.0') });
         await attack2.attackNext();
 
-        console.log(`Iteration ${i + 1}`);
-        console.log(
-          'Attack[1]',
-          ethers.formatEther(await attack1.getBalance()),
-        );
-        console.log(
-          'Attack[2]',
-          ethers.formatEther(await attack2.getBalance()),
-        );
-        console.log(
-          'InsecureEtherVault',
-          ethers.formatEther(await insecureEtherVault.getBalance()),
-        );
-        console.log('-----');
+        balance = await insecureEtherVault.getBalance();
       }
-    });
-    it('공격자는 Attack[2] 컨트랙트를 통해 출금을 요청한다.', async () => {
-      // console.log(await attack2.getBalance());
-      // await attack2.attackNext();
-      // console.log(await attack2.getBalance());
-      // console.log(await attack1.getBalance());
+      // insecureEtherVault Contract의 잔고가 0인지 확인
+      expect(balance).to.be.equal(0n);
+      // insecureEtherVault Contract가 공격 시작전에 가지고 있던 잔액과 같은지 확인
+      expect(await attack1.getBalance()).to.be.equal(initBalance);
+      expect(await attack2.getBalance()).to.be.equal(initBalance);
     });
   });
 });
