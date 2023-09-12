@@ -1,5 +1,3 @@
-# 알게된 사실
-
 # fallback
 
 - solidity 0.4.0 이후로 fallback 함수는 필수가 되었다.

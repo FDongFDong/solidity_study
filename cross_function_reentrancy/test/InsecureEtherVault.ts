@@ -76,8 +76,10 @@ describe('InsecureEtherVault', () => {
       const deployMockContract = async () => {
         const MockContractFactory =
           await ethers.getContractFactory('MockContract');
-        const MockContract =
-          await MockContractFactory.deploy(insecureEtherVault);
+        const MockContract = await MockContractFactory.deploy(
+          'insecure',
+          insecureEtherVault,
+        );
         return { MockContract };
       };
       const { MockContract } = await loadFixture(deployMockContract);
