@@ -8,8 +8,8 @@ import {
 } from '../typechain-types';
 import { expect } from 'chai';
 
-describe('Attack1', () => {
-  const deployInsecureEtherVault = async () => {
+describe('Attack', () => {
+  const deployEtherVault = async () => {
     const InsecureEtherVaultFactory =
       await ethers.getContractFactory('InsecureEtherVault');
     const InsecureEtherVault = await InsecureEtherVaultFactory.deploy();
@@ -18,11 +18,21 @@ describe('Attack1', () => {
     const FixedEtherVault = await FixedEtherVaultFactory.deploy();
     const AttackFactory1 = await ethers.getContractFactory('Attack');
     const AttackFactory2 = await ethers.getContractFactory('Attack');
-    const Attack1 = await AttackFactory1.deploy(InsecureEtherVault);
-    const Attack2 = await AttackFactory2.deploy(InsecureEtherVault);
+    const AttackFixed1 = await AttackFactory1.deploy(FixedEtherVault);
+    const AttackFixed2 = await AttackFactory1.deploy(FixedEtherVault);
+    const AttackInsecure1 = await AttackFactory1.deploy(InsecureEtherVault);
+    const AttackInsecure2 = await AttackFactory2.deploy(InsecureEtherVault);
     const Signers = await ethers.getSigners();
 
-    return { Signers, InsecureEtherVault, FixedEtherVault, Attack1, Attack2 };
+    return {
+      Signers,
+      InsecureEtherVault,
+      FixedEtherVault,
+      AttackInsecure1,
+      AttackInsecure2,
+      AttackFixed1,
+      AttackFixed2,
+    };
   };
   let insecureEtherVault: InsecureEtherVault & {
     deploymentTransaction(): ContractTransactionResponse;
@@ -41,13 +51,18 @@ describe('Attack1', () => {
 
   before(async () => {
     console.log('before');
-    const { Signers, InsecureEtherVault, FixedEtherVault, Attack1, Attack2 } =
-      await loadFixture(deployInsecureEtherVault);
+    const {
+      Signers,
+      InsecureEtherVault,
+      FixedEtherVault,
+      AttackInsecure1,
+      AttackInsecure2,
+    } = await loadFixture(deployEtherVault);
     signers = Signers;
     insecureEtherVault = InsecureEtherVault;
     fixedEtherVault = FixedEtherVault;
-    attack1 = Attack1;
-    attack2 = Attack2;
+    attack1 = AttackInsecure1;
+    attack2 = AttackInsecure2;
   });
 
   describe('공격 준비', () => {
@@ -122,6 +137,42 @@ describe('Attack1', () => {
       // insecureEtherVault Contract가 공격 시작전에 가지고 있던 잔액과 같은지 확인
       expect(await attack1.getBalance()).to.be.equal(initBalance);
       expect(await attack2.getBalance()).to.be.equal(initBalance);
+    });
+    it('공격자는 FixedEtherVault Contract에 재진입 공격 시 실패한다.', async () => {
+      const { FixedEtherVault, AttackFixed1, AttackFixed2, Signers } =
+        await loadFixture(deployEtherVault);
+
+      const first_user = Signers[1];
+      const second_user = Signers[2];
+      const attacker = Signers[3];
+      const depositAmount = ethers.parseEther('20.0');
+      // first_user가 20 ETH를 입금한다.
+      await FixedEtherVault.connect(first_user).deposit({
+        value: depositAmount,
+      });
+      expect(await FixedEtherVault.getBalance()).to.be.equal(depositAmount);
+
+      // second_user가 20 ETH를 입금한다.
+      await FixedEtherVault.connect(second_user).deposit({
+        value: depositAmount,
+      });
+      expect(await FixedEtherVault.getBalance()).to.be.equal(
+        depositAmount * 2n,
+      );
+
+      await AttackFixed1.setAttackPeer(AttackFixed2);
+
+      await AttackFixed1.connect(attacker).attackInit({
+        value: ethers.parseEther('1.0'),
+      });
+      // Attack1은 단순히 입금 후 출금한 것으로 간주하기 때문에 잔고가 1ETH가 있어야한다.
+      expect(await AttackFixed1.getBalance()).to.be.equal(
+        ethers.parseEther('1.0'),
+      );
+      // transfer가 실행되지 않았기 때문에 잔고가 0이 있어야한다.
+      expect(await AttackFixed2.getBalance()).to.be.equal(
+        ethers.parseEther('0'),
+      );
     });
   });
 });
