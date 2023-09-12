@@ -127,9 +127,6 @@ describe('Attack', () => {
       while (balance != 0n) {
         // 1 ETH 공급
         await attack1.attackInit({ value: ethers.parseEther('1.0') });
-      while (balance != 0n) {
-        // 1 ETH 공급
-        await attack1.attackInit({ value: ethers.parseEther('1.0') });
 
         await attack2.attackNext();
 
