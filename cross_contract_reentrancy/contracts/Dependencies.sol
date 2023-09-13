@@ -113,6 +113,7 @@ contract MoonToken {
         onlyOwner  // MoonVault must be the contract owner
         returns (bool success)
     {
+        
         balances[_to] += _value;
         totalSupply += _value;
         return true;

@@ -3,7 +3,6 @@ import { ContractTransactionResponse, Signer } from 'ethers';
 import { ethers } from 'hardhat';
 import { InsecureMoonVault, MoonToken } from '../typechain-types';
 import { expect } from 'chai';
-import { monitorEventLoopDelay } from 'perf_hooks';
 
 describe('InsecureMoonVault', () => {
   const DeployContract = async () => {
@@ -61,7 +60,7 @@ describe('InsecureMoonVault', () => {
   describe('출금', () => {
     let user: Signer;
     const depositAmount = ethers.parseEther('100');
-    it('사용자는 출금할 수 있다.', async () => {
+    it('사용자는 출금시 ETH를 돌려받으며 MoonToken은 소각된다.', async () => {
       const { Signers, InsecureMoonVault, MoonToken, deployer } =
         await loadFixture(DeployContract);
       user = Signers[3];
@@ -89,7 +88,5 @@ describe('InsecureMoonVault', () => {
         InsecureMoonVault.connect(user).withdrawAll()
       ).to.be.revertedWith('Insufficient balance');
     });
-    it('출금 시 실패하면 revert한다.');
-    it('소각 시 실패하면 revert한다.');
   });
 });

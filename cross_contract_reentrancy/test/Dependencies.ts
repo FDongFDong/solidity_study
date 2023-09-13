@@ -3,9 +3,6 @@ import { ethers } from 'hardhat';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { MoonToken } from '../typechain-types';
 import { expect } from 'chai';
-import { deployContract } from '@nomicfoundation/hardhat-ethers/types';
-import { monitorEventLoopDelay } from 'perf_hooks';
-
 describe('MoonToken', () => {
   const DeployMoonToken = async () => {
     const MoonTokenFactory = await ethers.getContractFactory('MoonToken');
