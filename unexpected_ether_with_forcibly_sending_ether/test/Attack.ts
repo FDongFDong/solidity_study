@@ -83,6 +83,24 @@ describe('Attack', () => {
       fixedAttack = FixedAttack;
       fixedMoonToken = FixedMoonToken;
     });
+
+    it('2명의 사용자가 FixedMoonToken에 ETH를 공급할 수 있다.', async () => {
+      first_user = signers[0];
+      second_user = signers[1];
+      await fixedMoonToken
+        .connect(first_user)
+        .buy(30, { value: ethers.parseEther('30') });
+      expect(
+        await fixedMoonToken.getUserBalance(first_user.getAddress())
+      ).to.equal(30);
+      await fixedMoonToken
+        .connect(second_user)
+        .buy(25, { value: ethers.parseEther('25') });
+      expect(
+        await fixedMoonToken.getUserBalance(second_user.getAddress())
+      ).to.equal(25);
+      expect(await fixedMoonToken.totalSupply()).to.equal(55);
+    });
     it('일정량의 ETH를 공급하지 않으면 공격을 할 수 없다.', async () => {
       await expect(fixedAttack.attack()).to.be.revertedWith(
         'Require some Ether to attack'
@@ -92,10 +110,12 @@ describe('Attack', () => {
       await fixedAttack.attack({ value: ethers.parseEther('0.1') });
 
       expect(await fixedMoonToken.getEtherBalance()).to.equal(
-        ethers.parseEther('0.1')
+        ethers.parseEther('55.1')
       );
-
       await fixedMoonToken.connect(first_user).sell(30);
+      expect(await fixedMoonToken.getEtherBalance()).to.equal(
+        ethers.parseEther('25.1')
+      );
     });
   });
 });
