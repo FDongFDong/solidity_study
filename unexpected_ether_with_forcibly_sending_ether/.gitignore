@@ -1,8 +1,9 @@
 node_modules
 .env
-coverage
+!coverage
 coverage.json
-coverage!index.html
+coverage
+coverage/!index.html
 typechain
 typechain-types
 
