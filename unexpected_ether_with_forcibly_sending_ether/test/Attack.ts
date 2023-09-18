@@ -84,7 +84,7 @@ describe('Attack', () => {
       fixedMoonToken = FixedMoonToken;
     });
     it('일정량의 ETH를 공급하지 않으면 공격을 할 수 없다.', async () => {
-      await expect(attack.attack()).to.be.revertedWith(
+      await expect(fixedAttack.attack()).to.be.revertedWith(
         'Require some Ether to attack'
       );
     });
