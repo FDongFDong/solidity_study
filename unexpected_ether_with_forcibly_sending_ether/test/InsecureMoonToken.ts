@@ -4,7 +4,7 @@ import { InsecureMoonToken } from '../typechain-types';
 import { ContractTransactionResponse } from 'ethers';
 import { expect } from 'chai';
 
-describe(' ', () => {
+describe('InsecureMoonToken', () => {
   const DeployContract = async () => {
     const InsecureMoonTokenFactory = await ethers.getContractFactory(
       'InsecureMoonToken'

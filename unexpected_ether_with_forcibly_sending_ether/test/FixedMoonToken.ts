@@ -22,21 +22,20 @@ describe('FixedMoonToken', () => {
     before(async () => {
       const { FixedMoonToken } = await loadFixture(DeployContract);
       fixedMoonToken = FixedMoonToken;
-
-      it('설정된 Token price를 확인할 수 있다', async () => {
-        expect(await fixedMoonToken.TOKEN_PRICE()).to.equal(
-          ethers.parseEther('1.0')
-        );
-      });
-      it('설정된 name을 확인할 수 있다.', async () => {
-        expect(await fixedMoonToken.name()).to.equal('Moon Token');
-      });
-      it('설정된 symbol을 확인할 수 있다.', async () => {
-        expect(await fixedMoonToken.symbol()).to.equal('MOON');
-      });
-      it('설정된 decimals 값을 확인할 수 있다.', async () => {
-        expect(await fixedMoonToken.decimals()).to.equal(0);
-      });
+    });
+    it('설정된 Token price를 확인할 수 있다', async () => {
+      expect(await fixedMoonToken.TOKEN_PRICE()).to.equal(
+        ethers.parseEther('1.0')
+      );
+    });
+    it('설정된 name을 확인할 수 있다.', async () => {
+      expect(await fixedMoonToken.name()).to.equal('Moon Token');
+    });
+    it('설정된 symbol을 확인할 수 있다.', async () => {
+      expect(await fixedMoonToken.symbol()).to.equal('MOON');
+    });
+    it('설정된 decimals 값을 확인할 수 있다.', async () => {
+      expect(await fixedMoonToken.decimals()).to.equal(0);
     });
   });
   describe('Buy', () => {
