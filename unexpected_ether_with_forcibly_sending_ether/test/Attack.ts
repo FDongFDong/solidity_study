@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ContractTransactionResponse, Signer } from 'ethers';
 import { ethers } from 'hardhat';
-import { Attack, InsecureMoonToken } from '../typechain-types';
+import { Attack, FixedMoonToken, InsecureMoonToken } from '../typechain-types';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 
 describe('Attack', () => {
@@ -64,6 +64,29 @@ describe('Attack', () => {
       );
 
       await expect(moonToken.connect(first_user).sell(30)).to.be.reverted;
+    });
+  });
+  describe('수정된 MoonToken Contract', () => {
+    let fixedMoonToken: FixedMoonToken & {
+      deploymentTransaction(): ContractTransactionResponse;
+    };
+    let fixedAttack: Attack & {
+      deploymentTransaction(): ContractTransactionResponse;
+    };
+    before(async () => {
+      const FixedMoonTokenFactory = await ethers.getContractFactory(
+        'FixedMoonToken'
+      );
+      const FixedMoonToken = await FixedMoonTokenFactory.deploy();
+      const FixedAttackFactory = await ethers.getContractFactory('Attack');
+      const FixedAttack = await FixedAttackFactory.deploy(FixedMoonToken);
+      fixedAttack = FixedAttack;
+      fixedMoonToken = FixedMoonToken;
+    });
+    it('일정량의 ETH를 공급하지 않으면 공격을 할 수 없다.', async () => {
+      await expect(attack.attack()).to.be.revertedWith(
+        'Require some Ether to attack'
+      );
     });
   });
 });
