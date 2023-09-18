@@ -88,5 +88,14 @@ describe('Attack', () => {
         'Require some Ether to attack'
       );
     });
+    it('소수점의 이더를 FixedMoonToken을 공급하여 판매기능을 고장낼 수 없다.', async () => {
+      await fixedAttack.attack({ value: ethers.parseEther('0.1') });
+
+      expect(await fixedMoonToken.getEtherBalance()).to.equal(
+        ethers.parseEther('0.1')
+      );
+
+      await fixedMoonToken.connect(first_user).sell(30);
+    });
   });
 });
