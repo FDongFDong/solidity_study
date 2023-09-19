@@ -1,13 +1,16 @@
-# Sample Hardhat Project
+# 알게된 사실
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## block tiemstamp 변경하는 방법
 
-Try running some of the following tasks:
+https://ethereum.stackexchange.com/questions/86633/time-dependent-tests-with-hardhat
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+```solidity
+ethers.provider.send('evm_increaseTime', [40000]);
+ethers.provider.send('evm_mine');
+```
+
+## 빈 지갑 만드는 방법
+
+```solidity
+    const randomWallet = Wallet.createRandom().connect(ethers.provider);
 ```
