@@ -111,5 +111,17 @@ describe('FixedWinnerTakesItAll', () => {
           .claimLeader({ value: ethers.parseEther('12') })
       ).to.revertedWith('You are the current leader');
     });
+    it('currentLeader의 Address가 0x00이면 claimLeader 실행 시 msg.sender가 currentLeader가 된다.', async () => {
+      const { FixedWinnerTakesItAll, Owner, FirstUser } = await loadFixture(
+        DeployContract
+      );
+
+      await FixedWinnerTakesItAll.connect(FirstUser).claimLeader({
+        value: ethers.parseEther('11'),
+      });
+      expect(await FixedWinnerTakesItAll.currentleader()).to.be.equal(
+        await FirstUser.getAddress()
+      );
+    });
   });
 });
