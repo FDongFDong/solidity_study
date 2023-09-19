@@ -90,13 +90,9 @@ describe('InsecureWinnerTakesItAll', () => {
     });
   });
   describe('claimLeader', () => {
-    let firstUser: Signer;
     before(async () => {
-      const { FirstUser, InsecureWinnerTakesItAll } = await loadFixture(
-        DeployContract
-      );
+      const { InsecureWinnerTakesItAll } = await loadFixture(DeployContract);
       insecureWinnerTakesItAll = InsecureWinnerTakesItAll;
-      firstUser = FirstUser;
     });
     it('block.timestamp가 challengeEnd보다 작으면 revert한다.', async () => {
       ethers.provider.send('evm_increaseTime', [40000]);
