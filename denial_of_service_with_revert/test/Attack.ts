@@ -1,7 +1,11 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { Attack, InsecureWinnerTakesItAll } from '../typechain-types';
+import {
+  Attack,
+  FixedWinnerTakesItAll,
+  InsecureWinnerTakesItAll,
+} from '../typechain-types';
 import { ContractTransactionResponse, Signer } from 'ethers';
 
 describe('Attack', () => {
@@ -110,6 +114,73 @@ describe('Attack', () => {
 
       expect(await insecureWinnerTakesItAll.getEtherBalance()).to.be.equal(
         ethers.parseEther('0')
+      );
+    });
+  });
+  describe('attack failed', () => {
+    let fixedWinnerTakesItAll: FixedWinnerTakesItAll & {
+      deploymentTransaction(): ContractTransactionResponse;
+    };
+    let fixedAttack: Attack & {
+      deploymentTransaction(): ContractTransactionResponse;
+    };
+    let firstUser: Signer;
+    let secondUser: Signer;
+    let attacker: Signer;
+    before(async () => {
+      const FixedWinnerTakesItAllFactory = await ethers.getContractFactory(
+        'FixedWinnerTakesItAll'
+      );
+      const FixedWinnerTakesItAll = await FixedWinnerTakesItAllFactory.deploy(
+        challengePeriod,
+        { value: ethers.parseEther('10') }
+      );
+      const FixedAttackFactory = await ethers.getContractFactory('Attack');
+      const FixedAttack = await FixedAttackFactory.deploy(
+        FixedWinnerTakesItAll
+      );
+      fixedWinnerTakesItAll = FixedWinnerTakesItAll;
+      const [Attacker, FirstUser, SecondUser] = await ethers.getSigners();
+      firstUser = FirstUser;
+      secondUser = SecondUser;
+      fixedAttack = FixedAttack;
+      attacker = Attacker;
+    });
+
+    it('사전 작업 - First User와 Second User가 경쟁적으로 FixedWinnerTakesItAll 컨트랙트에 ETH를 보낸다.', async () => {
+      await fixedWinnerTakesItAll
+        .connect(firstUser)
+        .claimLeader({ value: ethers.parseEther('15') });
+
+      // Second User가 20 ETH를 보낸다.
+      await fixedWinnerTakesItAll
+        .connect(secondUser)
+        .claimLeader({ value: ethers.parseEther('20') });
+
+      // First User가 30 ETH를 보낸다.
+      await fixedWinnerTakesItAll
+        .connect(firstUser)
+        .claimLeader({ value: ethers.parseEther('30') });
+      // Second User가 50 ETH를 보낸다.
+      await fixedWinnerTakesItAll
+        .connect(secondUser)
+        .claimLeader({ value: ethers.parseEther('50') });
+
+      expect(await fixedWinnerTakesItAll.getEtherBalance()).to.be.equal(
+        ethers.parseEther('125')
+      );
+    });
+    it('attack 함수를 호출하여 FixedWinnerTakesItAll 컨트랙트의 claimLeader()의 기능을 사용하지 못하도록할 수 없다.', async () => {
+      // Attacker가 리더를 차지하기 위해 125 ETH보다 조금 더 많은 ETH인 130 ETH를 함께 보낸다.
+      await fixedAttack
+        .connect(attacker)
+        .attack({ value: ethers.parseEther('130') });
+
+      await fixedWinnerTakesItAll
+        .connect(firstUser)
+        .claimLeader({ value: ethers.parseEther('135') });
+      expect(await fixedWinnerTakesItAll.getEtherBalance()).to.be.equal(
+        ethers.parseEther('390')
       );
     });
   });

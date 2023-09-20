@@ -1,7 +1,7 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { ethers } from 'hardhat';
 import { FixedWinnerTakesItAll } from '../typechain-types';
-import { ContractTransactionResponse, Signer } from 'ethers';
+import { ContractTransactionResponse, Signer, Wallet } from 'ethers';
 import { expect } from 'chai';
 
 describe('FixedWinnerTakesItAll', () => {
@@ -93,13 +93,13 @@ describe('FixedWinnerTakesItAll', () => {
 
     it('block.timestamp가 challengeEnd보다 작으면 revert한다. ', async () => {
       ethers.provider.send('evm_increaseTime', [40000]);
-      ethers.provider.send('evm_mind');
+      ethers.provider.send('evm_mine');
 
       await expect(fixedWinnerTakesItAll.claimLeader()).to.be.revertedWith(
         'Challenge is finished'
       );
       ethers.provider.send('evm_increaseTime', [-40000]);
-      ethers.provider.send('evm_mind');
+      ethers.provider.send('evm_mine');
     });
     it('msg.sender == currentLeader이면 revert한다.', async () => {
       await fixedWinnerTakesItAll
@@ -121,6 +121,113 @@ describe('FixedWinnerTakesItAll', () => {
       });
       expect(await FixedWinnerTakesItAll.currentleader()).to.be.equal(
         await FirstUser.getAddress()
+      );
+    });
+    it('챌린지에 참여하기 위해서는 lastDepositedAmount보다 ETH를 더 보내야한다.', async () => {
+      const { FixedWinnerTakesItAll, FirstUser } = await loadFixture(
+        DeployContract
+      );
+      await expect(
+        FixedWinnerTakesItAll.connect(FirstUser).claimLeader({
+          value: ethers.parseEther('9'),
+        })
+      ).to.be.revertedWith('You must pay more than the current leader');
+    });
+
+    it('currentLeader가 있으면 이전 Leader가 참여한 금액의 90%만 돌려준다.', async () => {
+      const { FixedWinnerTakesItAll, FirstUser, SecondUser } =
+        await loadFixture(DeployContract);
+      expect(await FixedWinnerTakesItAll.getEtherBalance()).to.be.equal(
+        ethers.parseEther('10')
+      );
+
+      await FixedWinnerTakesItAll.connect(FirstUser).claimLeader({
+        value: ethers.parseEther('100'),
+      });
+
+      expect(await FixedWinnerTakesItAll.getEtherBalance()).to.be.equal(
+        ethers.parseEther('110')
+      );
+
+      await FixedWinnerTakesItAll.connect(SecondUser).claimLeader({
+        value: ethers.parseEther('200'),
+      });
+
+      // 이전 리더에게 돌려줄 금액을 계산
+      const refundAmount =
+        (ethers.parseEther('100') * ethers.parseEther('9')) /
+        ethers.parseEther('10');
+
+      // 이전 리더가 출금한다.
+      await FixedWinnerTakesItAll.connect(FirstUser).claimRefund();
+      await expect(
+        FixedWinnerTakesItAll.connect(FirstUser).claimRefund()
+      ).to.be.revertedWith('You have no refund');
+      // 새로운 잔액을 계산
+      const newBalance =
+        ethers.parseEther('110') + ethers.parseEther('200') - refundAmount;
+
+      expect(await FixedWinnerTakesItAll.getEtherBalance()).to.be.equal(
+        newBalance
+      );
+    });
+  });
+  describe('claimPrincipalAndReward', () => {
+    it('챌린지가 끝나지 않았으면 revert 한다.', async () => {
+      const { FixedWinnerTakesItAll } = await loadFixture(DeployContract);
+      await expect(
+        FixedWinnerTakesItAll.claimPrincipalAndReward()
+      ).to.be.revertedWith('Challenge is not finished yet');
+    });
+    it('상금을 받으려는 Address가 currentLeader가 아니면 revert 한다.', async () => {
+      const { FixedWinnerTakesItAll, FirstUser } = await loadFixture(
+        DeployContract
+      );
+      const randomWallet = Wallet.createRandom(ethers.provider);
+      await FirstUser.sendTransaction({
+        to: randomWallet.address,
+        value: ethers.parseEther('200'),
+      });
+
+      expect(
+        await ethers.provider.getBalance(randomWallet.address)
+      ).to.be.equal(ethers.parseEther('200'));
+
+      await FixedWinnerTakesItAll.connect(FirstUser).claimLeader({
+        value: ethers.parseEther('200'),
+      });
+
+      ethers.provider.send('evm_increaseTime', [40000]);
+      ethers.provider.send('evm_mine');
+
+      await expect(
+        FixedWinnerTakesItAll.connect(randomWallet).claimPrincipalAndReward()
+      ).to.be.revertedWith('You are not the winner');
+    });
+    it('챌린지가 끝나면 리더는 리더보상 + 리더가 보유한 금액을 받는다.', async () => {
+      const { FixedWinnerTakesItAll, FirstUser } = await loadFixture(
+        DeployContract
+      );
+
+      const randomWallet = Wallet.createRandom().connect(ethers.provider);
+      await FirstUser.sendTransaction({
+        to: randomWallet.address,
+        value: ethers.parseEther('200'),
+      });
+
+      await FixedWinnerTakesItAll.connect(randomWallet).claimLeader({
+        value: ethers.parseEther('100'),
+      });
+
+      ethers.provider.send('evm_increaseTime', [40000]);
+      ethers.provider.send('evm_mine');
+
+      await FixedWinnerTakesItAll.connect(
+        randomWallet
+      ).claimPrincipalAndReward();
+
+      expect(await FixedWinnerTakesItAll.getEtherBalance()).to.be.equal(
+        ethers.parseEther('0')
       );
     });
   });
